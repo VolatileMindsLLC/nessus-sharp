@@ -5,7 +5,7 @@ using System.IO;
 using System.Net;
 using System.Text;
 
-namespace AutoAssess.Data.Nessus
+namespace nessusssharp
 {
 	public class NessusManagerSession : IDisposable
 	{
