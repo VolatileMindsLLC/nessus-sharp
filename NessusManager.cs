@@ -2,7 +2,7 @@ using System;
 using System.Collections;
 using System.Xml;
 
-namespace nessusssharp
+namespace nessussharp
 {
 	public class NessusManager : IDisposable
 	{

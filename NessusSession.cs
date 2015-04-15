@@ -6,7 +6,7 @@ using System.Net;
 using System.Text;
 using Newtonsoft.Json.Linq;
 
-namespace nessusssharp
+namespace nessussharp
 {
 	public class NessusSession : IDisposable
 	{
