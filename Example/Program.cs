@@ -1,4 +1,5 @@
 ﻿using System;
+using nessusssharp;
 
 namespace Example
 {
@@ -6,7 +7,8 @@ namespace Example
 	{
 		public static void Main (string[] args)
 		{
-			Console.WriteLine ("Hello World!");
+			using (NessusSession session = new NessusSession ("admin", "password", "192.168.1.53")) {
+			}
 		}
 	}
 }
