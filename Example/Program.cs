@@ -7,7 +7,7 @@ namespace Example
 	{
 		public static void Main (string[] args)
 		{
-			using (NessusSession session = new NessusSession ("admin", "password", "192.168.1.53")) {
+			using (NessusSession session = new NessusSession ("adgmin", "password", "192.168.1.53")) {
 			}
 		}
 	}

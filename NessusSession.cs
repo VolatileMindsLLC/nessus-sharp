@@ -21,7 +21,11 @@ namespace nessusssharp
 			this.ServerPort = port;
 			JObject response = this.Authenticate (username, password);
 
-			Console.WriteLine (response.ToString ());
+			if (response ["error"] != null)
+
+				throw new Exception (response ["error"].Value<string>());
+
+			this.AuthenticationToken = response ["token"].Value<string>();
 
 		}
 
@@ -32,6 +36,8 @@ namespace nessusssharp
 		public string Username { get; set; }
 
 		public string Password { get; set; }
+
+		public string AuthenticationToken { get; set; }
 
 		public JObject Authenticate (string username, string password) {
 
@@ -57,9 +63,13 @@ namespace nessusssharp
 			request.GetRequestStream().Write (parmBytes, 0, parmBytes.Length);
 
 			string response = string.Empty;
-
-			using (StreamReader reader = new StreamReader (request.GetResponse ().GetResponseStream ()))
-				response = reader.ReadToEnd ();
+			try {
+				using (StreamReader reader = new StreamReader (request.GetResponse ().GetResponseStream ()))
+					response = reader.ReadToEnd ();
+			} catch (WebException ex) {
+				using (StreamReader reader = new StreamReader (ex.Response.GetResponseStream ()))
+					response = reader.ReadToEnd ();
+			}
 
 			return JObject.Parse (response);
 		}
