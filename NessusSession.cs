@@ -19,7 +19,10 @@ namespace nessusssharp
 			
 			this.ServerHost = host;
 			this.ServerPort = port;
-			this.Authenticate (username, password);
+			JObject response = this.Authenticate (username, password);
+
+			Console.WriteLine (response.ToString ());
+
 		}
 
 		public string ServerHost { get; set; }
