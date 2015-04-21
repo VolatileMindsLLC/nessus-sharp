@@ -10,57 +10,43 @@ namespace nessussharp
 {
 	public class NessusSession : IDisposable
 	{
-		public NessusSession(string host, int port = 8834){
-			this.ServerHost = host;
-			this.ServerPort = port;
-		}
+		public string ServerHost { get; set; }
+		public int ServerPort { get; set; }
+		public string Username { get; set; }
+		public string Password { get; set; }
+		public string AuthenticationToken { get; set; }
 
 		public NessusSession(string username, string password, string host, int port = 8834) {
-			
 			this.ServerHost = host;
 			this.ServerPort = port;
+
 			JObject response = this.Authenticate (username, password);
 
 			if (response ["error"] != null)
-
 				throw new Exception (response ["error"].Value<string>());
 
 			this.AuthenticationToken = response ["token"].Value<string>();
-
 		}
 
-		public string ServerHost { get; set; }
 
-		public int ServerPort { get; set; }
-
-		public string Username { get; set; }
-
-		public string Password { get; set; }
-
-		public string AuthenticationToken { get; set; }
-
-		public JObject Authenticate (string username, string password) {
-
-			if (username == string.Empty || password == string.Empty)
-				throw new Exception ("Username and Password required");
+		public JObject ExecuteCommand(string verb, string uri, JObject parameters = null){
 
 			ServicePointManager.ServerCertificateValidationCallback = (s, cert, chain, ssl) => true;
 
-			HttpWebRequest request = WebRequest.Create ("https://" + this.ServerHost + ":" + this.ServerPort + "/session") as HttpWebRequest;
-			request.Method = "POST";
+			string url = "https://" + this.ServerHost + ":" + this.ServerPort + uri;
+
+			HttpWebRequest request = WebRequest.Create (url) as HttpWebRequest;
+			request.Method = verb;
+			request.Headers ["X-Cookie"] = "token=" + this.AuthenticationToken;
 			request.Accept = "application/json";
 			request.ContentType = "application/json";
-			request.Proxy = new WebProxy ("192.168.1.52", 8080);
 
-			JObject parameters = new JObject ();
-			parameters ["username"] = username;
-			parameters ["password"] = password;
-
-			byte[] parmBytes = System.Text.Encoding.ASCII.GetBytes (parameters.ToString ());
-
-			request.ContentLength = parmBytes.Length;
-
-			request.GetRequestStream().Write (parmBytes, 0, parmBytes.Length);
+			if (parameters != null) {
+				byte[] parmBytes = System.Text.Encoding.ASCII.GetBytes (parameters.ToString ());
+				request.ContentLength = parmBytes.Length;
+				request.GetRequestStream ().Write (parmBytes, 0, parmBytes.Length);
+			} else if (verb == "POST")
+				request.ContentLength = 0;
 
 			string response = string.Empty;
 			try {
@@ -71,11 +57,29 @@ namespace nessussharp
 					response = reader.ReadToEnd ();
 			}
 
+
 			return JObject.Parse (response);
 		}
 
+		public JObject Authenticate (string username, string password) {
+
+			if (username == string.Empty || password == string.Empty)
+				throw new Exception ("Username and Password required");
+
+			JObject parameters = new JObject ();
+			parameters ["username"] = username;
+			parameters ["password"] = password;
+
+			return ExecuteCommand ("POST", "/session", parameters);
+		}
+
 		public void Dispose()
-		{}
+		{
+			JObject parameters = new JObject ();
+			parameters ["token"] = this.AuthenticationToken;
+
+			this.ExecuteCommand ("DELETE", "/session", parameters);
+		}
 	}
 }
 
